@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:test_roulette/domain/cubits/auth_cubit.dart';
 
 class RegistrationByEmailScreen extends StatefulWidget {
   const RegistrationByEmailScreen({Key? key}) : super(key: key);
@@ -9,49 +11,71 @@ class RegistrationByEmailScreen extends StatefulWidget {
 
 class _RegistrationByEmailScreenState extends State<RegistrationByEmailScreen> {
   final _formKey = GlobalKey<FormState>();
-  final emailOrLoginController = TextEditingController();
+  final userNameController = TextEditingController();
+  final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final authCubit = context.watch<AuthCubit>();
+    final errorTextStream =authCubit.errorTextStream;
+    
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 6, 72, 126),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(15),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    CustomTextFormField(
-                        controller: emailOrLoginController,
-                        hint: 'Email',
-                        validatorText: 'email error'),
-                    CustomTextFormField(
-                        controller: passwordController,
-                        hint: 'Password',
-                        validatorText: 'password error'),
-                    ElevatedButton(
-                        onPressed: () {
-                          final form = _formKey.currentState;
-                          if (!form!.validate()) return;
+          child: StreamBuilder(
+            stream: errorTextStream,
+            builder: (context, snapsot) {
+              final errorText = authCubit.errorText;
 
-                          final emailOrLogin = emailOrLoginController.text;
-                          final password = passwordController.text;
-                        },
-                        child: const Text('Registrate')),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 15),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Back'),
-              ),
-            ],
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        CustomTextFormField(
+                            controller: userNameController,
+                            hint: 'User name',
+                            validatorText: 'euser name error'),
+                        CustomTextFormField(
+                            controller: emailController,
+                            hint: 'Email',
+                            validatorText: 'email error'),
+                        CustomTextFormField(
+                            controller: passwordController,
+                            hint: 'Password',
+                            validatorText: 'password error'),
+                        ElevatedButton(
+                            onPressed: () {
+                              final form = _formKey.currentState;
+                              if (!form!.validate()) return;
+          
+                              final userName = userNameController.text;
+                              final email = emailController.text;
+                              final password = passwordController.text;
+          
+                              authCubit.registrateWithEmailAndPassword(email: email, password: password, userName: userName);
+                            },
+                            child: const Text('Registrate')),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      authCubit.errorTextClean();
+                    },
+                    child: const Text('Back'),
+                  ),
+                  Text(errorText),
+                ],
+              );
+            }
           ),
         ),
       ),
