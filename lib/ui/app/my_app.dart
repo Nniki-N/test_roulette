@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:test_roulette/domain/cubits/account_cubit.dart';
 import 'package:test_roulette/domain/cubits/auth_cubit.dart';
 import 'package:test_roulette/ui/navigation/main_navigation.dart';
 
@@ -15,6 +16,7 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => AuthCubit()),
+        BlocProvider(create: (context) => AccountCubit(), lazy: false,),
       ],
       // push to main or auth screen base on auth status
       child: BlocListener<AuthCubit, AuthState>(

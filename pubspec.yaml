@@ -38,8 +38,6 @@ dependencies:
   cupertino_icons: ^1.0.2
   firebase_auth: ^4.1.4
   firebase_core: ^2.3.0
-  firebase_storage: ^11.0.6
-  cloud_firestore: ^4.1.0
   firebase_database: ^10.0.6
   flutter_bloc: ^8.1.1
   json_serializable: ^6.5.4

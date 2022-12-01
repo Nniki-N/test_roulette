@@ -4,18 +4,17 @@ import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:test_roulette/domain/entity/user_model.dart';
-import 'package:test_roulette/domain/repositories/user_repository.dart';
+import 'package:test_roulette/domain/repositories/users_repository.dart';
 
 enum AuthState {
   initial,
   signedIn,
   signedOut,
-  inProcess,
 }
 
 class AuthCubit extends Cubit<AuthState> {
   final _firebaseAuth = FirebaseAuth.instance;
-  final _userRopository = UserRepository();
+  final _usersRopository = UsersRepository();
 
   // variables used to display response to user
   String _errorText = '';
@@ -36,7 +35,7 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> _initialize() async {
-    // notifies about any auth status changes
+    // change auth status
     _authStreamSubscription =
         _firebaseAuth.authStateChanges().listen((User? user) {
       if (user?.uid == null) {
@@ -53,10 +52,7 @@ class AuthCubit extends Cubit<AuthState> {
     });
   }
 
-  Future<bool> signInWithEmailAndPassword({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> signInWithEmailAndPassword({ required String email, required String password, }) async {
     try {
       // sign in with email and password
       final result = await _firebaseAuth.signInWithEmailAndPassword(
@@ -98,7 +94,7 @@ class AuthCubit extends Cubit<AuthState> {
         );
 
         // save anonymous user in firebases databases
-        _userRopository.saveUserDataInFirebaseDatabase(userModel: userModel);
+        _usersRopository.saveUserDataInFirebaseDatabase(userModel: userModel);
 
         errorTextClean();
         return true;
@@ -128,11 +124,7 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  Future<bool> registrateWithEmailAndPassword({
-    required String email,
-    required String password,
-    required String userName,
-  }) async {
+  Future<bool> registrateWithEmailAndPassword({ required String email, required String password, required String userName, }) async {
     try {
       // create new account with email and password
       final result = await _firebaseAuth.createUserWithEmailAndPassword(
@@ -154,7 +146,7 @@ class AuthCubit extends Cubit<AuthState> {
         );
 
         // save user in firebases databases
-        _userRopository.saveUserDataInFirebaseDatabase(userModel: userModel);
+        _usersRopository.saveUserDataInFirebaseDatabase(userModel: userModel);
 
         errorTextClean();
         return true;
@@ -169,18 +161,6 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<bool> registrateByGoogle() async {
     return false;
-  }
-
-  Future<void> deleteUser() async {
-    final user = _firebaseAuth.currentUser;
-
-    if (user != null) {
-      // delete user data from firebase database
-      _userRopository.deleteUserDataFromFirebaseDatabase(userId: user.uid);
-
-      // delete user account from firebase
-      user.delete();
-    }
   }
 
   // clean error text

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:test_roulette/domain/cubits/account_cubit.dart';
 import 'package:test_roulette/domain/cubits/auth_cubit.dart';
 
 class SettingPage extends StatelessWidget {
@@ -8,6 +9,7 @@ class SettingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authCubit = context.watch<AuthCubit>();
+    final accountCubit = context.watch<AccountCubit>();
 
     return Scaffold(
       body: Padding(
@@ -21,7 +23,7 @@ class SettingPage extends StatelessWidget {
             const SizedBox(height: 10),
             ElevatedButton(
                 onPressed: () {
-                  authCubit.deleteUser();
+                  accountCubit.deleteUser();
                 }, child: const Text('Delete account')),
             const SizedBox(height: 10),
             ElevatedButton(onPressed: () {}, child: const Text('Rate app')),

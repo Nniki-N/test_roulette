@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:test_roulette/domain/cubits/account_cubit.dart';
+import 'package:test_roulette/domain/cubits/rating_cubit.dart';
 import 'package:test_roulette/ui/screens/main_screen/game_page/game_page.dart';
 import 'package:test_roulette/ui/screens/main_screen/rating_page/rating_page.dart';
 import 'package:test_roulette/ui/screens/main_screen/settings_page/settings_page.dart';
@@ -75,10 +78,11 @@ class _MainScreenState extends State<MainScreen> {
       ),
       body: IndexedStack(
         index: _pageIndex,
-        children: const [
-          GamePage(),
-          RatingPage(),
-          SettingPage(),
+        children: [
+          const GamePage(),
+          BlocProvider(
+              create: (context) => RatingCubit(), child: const RatingPage()),
+          const SettingPage(),
         ],
       ),
     );
@@ -92,15 +96,20 @@ class MainScreenHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accountCubit = context.watch<AccountCubit>();
+    final userModel = accountCubit.getUser();
+    final userName = userModel?.userName;
+    final numberOfChips = userModel?.numberOfChips;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(15, 40, 15, 20),
       color: const Color.fromARGB(255, 46, 8, 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'user name',
-            style: TextStyle(
+          Text(
+            userName ?? 'user name',
+            style: const TextStyle(
               fontSize: 25,
               color: Colors.white,
             ),
@@ -108,9 +117,9 @@ class MainScreenHeader extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Coins',
-                style: TextStyle(
+              Text(
+                numberOfChips != null ? numberOfChips.toString() : '0',
+                style: const TextStyle(
                   fontSize: 20,
                   color: Colors.white,
                 ),
