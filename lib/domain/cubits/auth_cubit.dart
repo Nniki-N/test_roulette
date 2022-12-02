@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:test_roulette/domain/entity/user_model.dart';
 import 'package:test_roulette/domain/repositories/users_repository.dart';
 
@@ -28,14 +29,14 @@ class AuthCubit extends Cubit<AuthState> {
   StreamSubscription<String>? _errorTextStreamSubscription;
   Stream<String>? _errorTextStream;
 
-  Stream<String>? get errorTextStream => _errorTextStream;  
+  Stream<String>? get errorTextStream => _errorTextStream;
 
   AuthCubit() : super(AuthState.initial) {
     _initialize();
   }
 
   Future<void> _initialize() async {
-    // change auth status
+    // changes auth status
     _authStreamSubscription =
         _firebaseAuth.authStateChanges().listen((User? user) {
       if (user?.uid == null) {
@@ -52,7 +53,11 @@ class AuthCubit extends Cubit<AuthState> {
     });
   }
 
-  Future<bool> signInWithEmailAndPassword({ required String email, required String password, }) async {
+  // sign in with email and password
+  Future<void> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
     try {
       // sign in with email and password
       final result = await _firebaseAuth.signInWithEmailAndPassword(
@@ -64,17 +69,34 @@ class AuthCubit extends Cubit<AuthState> {
       // sign in was successful
       if (user != null) {
         errorTextClean();
-        return true;
       } else {
         throw ('error');
       }
+    } on FirebaseAuthException catch (e) {
+      // display special error message
+      switch (e.code) {
+        case 'user-not-found':
+          _setTextError('No user found for that email.');
+          break;
+        case 'invalid-email':
+          _setTextError('Email address is written wrong');
+          break;
+        case 'wrong-password':
+          _setTextError('Wrong password.');
+          break;
+        case 'user-disabled':
+          _setTextError('Your account has been disabled by an administrator');
+          break;
+        default:
+          _setTextError('Some error happened');
+      }
     } catch (e) {
       _setTextError('$e');
-      return false;
     }
   }
 
-  Future<bool> signInAnonymously() async {
+  // sign in anonymously and create new account
+  Future<void> signInAnonymously() async {
     try {
       // sign in anonymously
       final result = await _firebaseAuth.signInAnonymously();
@@ -97,34 +119,91 @@ class AuthCubit extends Cubit<AuthState> {
         _usersRopository.saveUserDataInFirebaseDatabase(userModel: userModel);
 
         errorTextClean();
-        return true;
       } else {
         throw ('error anonymous');
       }
+    } on FirebaseAuthException catch (e) {
+      // display special error message
+      switch (e.code) {
+        case 'peration-not-allowed':
+          _setTextError('Anonymous auth hasn\'t been enabled for this project.');
+          break;
+        default:
+          _setTextError('Some error happened');
+      }
     } catch (e) {
       _setTextError('$e');
-      return false;
     }
   }
 
-  Future<bool> signInByGoogle() async {
-    return false;
+  // sign in with google and create new account if user is new
+  Future<void> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+      final GoogleSignInAuthentication? googleAuth =
+          await googleUser?.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth?.accessToken,
+        idToken: googleAuth?.idToken,
+      );
+
+      final result =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+      final user = result.user;
+
+      final newUser = result.additionalUserInfo?.isNewUser ?? false;
+
+      // sign in was successfull and user is new
+      if (user != null && newUser) {
+        // create user profile
+        final userModel = UserModel(
+          userId: user.uid,
+          userName: user.displayName ?? 'user name',
+          numberOfChips: 2000,
+          numberOfVictories: 0,
+          numberOfGames: 0,
+          winRate: 0.0,
+        );
+
+        // save user in firebases databases
+        _usersRopository.saveUserDataInFirebaseDatabase(userModel: userModel);
+
+        errorTextClean();
+      }
+    } catch (e) {
+      _setTextError('$e');
+    }
   }
 
-  Future<bool> signOut() async {
+  // sign out
+  Future<void> signOut() async {
     try {
       // sign out
       await _firebaseAuth.signOut();
 
       errorTextClean();
-      return true;
+    } on FirebaseAuthException catch (e) {
+      // display special error message
+      switch (e.code) {
+        case 'user-signed-out':
+          _setTextError('Invalid logout way.');
+          break;
+        default:
+          _setTextError('Some error happened');
+      }
     } catch (e) {
       _setTextError('$e');
-      return false;
     }
   }
 
-  Future<bool> registrateWithEmailAndPassword({ required String email, required String password, required String userName, }) async {
+  // regitrate with email and password and create new account
+  Future<void> registrateWithEmailAndPassword({
+    required String email,
+    required String password,
+    required String userName,
+  }) async {
     try {
       // create new account with email and password
       final result = await _firebaseAuth.createUserWithEmailAndPassword(
@@ -149,18 +228,27 @@ class AuthCubit extends Cubit<AuthState> {
         _usersRopository.saveUserDataInFirebaseDatabase(userModel: userModel);
 
         errorTextClean();
-        return true;
       } else {
         throw ('This user doesn\'t exist');
       }
+    } on FirebaseAuthException catch (e) {
+      // display special error message
+      switch (e.code) {
+        case 'email-already-exists':
+          _setTextError('This email already exists.');
+          break;
+        case 'invalid-email':
+          _setTextError('Please write your email correctly');
+          break;
+        case 'weak-password':
+          _setTextError('Password shold be at least 6 characters.');
+          break;
+        default:
+          _setTextError('Some error happened');
+      }
     } catch (e) {
       _setTextError('$e');
-      return false;
     }
-  }
-
-  Future<bool> registrateByGoogle() async {
-    return false;
   }
 
   // clean error text

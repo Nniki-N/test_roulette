@@ -46,7 +46,9 @@ class AuthLogInScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      authCubit.signInWithGoogle();
+                    },
                     child: const Text('Google'),
                   ),
                   const SizedBox(height: 10),
