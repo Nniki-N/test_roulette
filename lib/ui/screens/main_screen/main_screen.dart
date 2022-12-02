@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:test_roulette/domain/cubits/account_cubit.dart';
 import 'package:test_roulette/domain/cubits/rating_cubit.dart';
+import 'package:test_roulette/resources/resources.dart';
 import 'package:test_roulette/ui/screens/main_screen/game_page/game_page.dart';
 import 'package:test_roulette/ui/screens/main_screen/rating_page/rating_page.dart';
 import 'package:test_roulette/ui/screens/main_screen/settings_page/settings_page.dart';
+import 'package:test_roulette/ui/utils/theme_colors.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -19,11 +22,11 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 5, 38, 87),
+      backgroundColor: backgroundColor,
       bottomNavigationBar: Container(
         height: 70,
         width: double.infinity,
-        color: const Color.fromARGB(255, 46, 8, 8),
+        color: menuBarColor,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -103,7 +106,7 @@ class MainScreenHeader extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(15, 40, 15, 20),
-      color: const Color.fromARGB(255, 46, 8, 8),
+      color: menuBarColor,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -125,11 +128,7 @@ class MainScreenHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              Container(
-                height: 20,
-                width: 20,
-                color: Colors.yellow,
-              )
+              SvgPicture.asset(Svgs.coin, width: 25),
             ],
           )
         ],
