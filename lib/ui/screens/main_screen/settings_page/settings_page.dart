@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rate_my_app/rate_my_app.dart';
 import 'package:test_roulette/domain/cubits/account_cubit.dart';
 import 'package:test_roulette/domain/cubits/auth_cubit.dart';
 import 'package:test_roulette/ui/utils/theme_colors.dart';
@@ -39,7 +40,10 @@ class SettingPage extends StatelessWidget {
             CustomButton(
               foregroundColor: backgroundColor,
               backgroundColor: Colors.white,
-              onPressed: () {},
+              onPressed: () {
+                accountCubit.rateApp(context);
+                
+              },
               text: 'Rate app',
             ),
           ],

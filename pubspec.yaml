@@ -45,6 +45,7 @@ dependencies:
   google_sign_in: ^5.4.2
   spider: ^4.0.0
   flutter_svg: ^1.1.6
+  rate_my_app: ^1.1.3
 
 dev_dependencies:
   flutter_test:

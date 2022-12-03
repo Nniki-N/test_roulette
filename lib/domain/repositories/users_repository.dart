@@ -29,11 +29,6 @@ class UsersRepository {
     return _getUserModelFromJson(json);
   }
 
-  UserModel _getUserModelFromJson(Object? value) {
-    return UserModel.fromJson(
-        jsonDecode(jsonEncode(value)) as Map<String, dynamic>);
-  }
-
   // get user data stream by user id from firebase database
   Stream<DatabaseEvent> getUserDataStreamFromFirebaseDatabase(
       {required String userId}) {
@@ -55,5 +50,10 @@ class UsersRepository {
     final ref = _firebaseDatabase.ref().child('users');
 
     return ref.onValue;
+  }
+
+  UserModel _getUserModelFromJson(Object? value) {
+    return UserModel.fromJson(
+        jsonDecode(jsonEncode(value)) as Map<String, dynamic>);
   }
 }

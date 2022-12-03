@@ -402,6 +402,8 @@ class RouletteGameCubit extends Cubit<RouletteGameState> {
 
   // bet chips
   Future<void> bet({required BetTypes betType, int? number}) async {
+    if (isPlaying) return;
+    
     UserModel? currentUser = state.currentUser;
 
     if (currentUser != null) {
