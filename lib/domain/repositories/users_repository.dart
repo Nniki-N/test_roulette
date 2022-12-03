@@ -1,7 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:test_roulette/domain/entity/user_model.dart';
-
 
 class UsersRepository {
   final _firebaseDatabase = FirebaseDatabase.instance;
@@ -19,6 +19,19 @@ class UsersRepository {
       'number_of_games': userModel.numberOfGames,
       'win_rate': userModel.winRate,
     });
+  }
+
+  Future<UserModel> getUserModelFromFirebase({required String userId}) async {
+    final ref = _firebaseDatabase.ref().child('users/$userId');
+
+    final snapshot = await ref.get();
+    final json = snapshot.value as Map<dynamic, dynamic>;
+    return _getUserModelFromJson(json);
+  }
+
+  UserModel _getUserModelFromJson(Object? value) {
+    return UserModel.fromJson(
+        jsonDecode(jsonEncode(value)) as Map<String, dynamic>);
   }
 
   // get user data stream by user id from firebase database

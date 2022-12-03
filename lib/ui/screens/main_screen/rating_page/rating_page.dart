@@ -82,7 +82,7 @@ class UserItem extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'Win rate: $winRate',
+                  'Win rate: $winRate %',
                   style: const TextStyle(
                     fontSize: 15,
                     color: Color.fromARGB(255, 51, 163, 109),

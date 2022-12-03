@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:test_roulette/domain/cubits/account_cubit.dart';
 import 'package:test_roulette/domain/cubits/rating_cubit.dart';
+import 'package:test_roulette/domain/cubits/roulette_game_cubit.dart';
 import 'package:test_roulette/resources/resources.dart';
 import 'package:test_roulette/ui/screens/main_screen/game_page/game_page.dart';
 import 'package:test_roulette/ui/screens/main_screen/rating_page/rating_page.dart';
@@ -82,9 +83,14 @@ class _MainScreenState extends State<MainScreen> {
       body: IndexedStack(
         index: _pageIndex,
         children: [
-          const GamePage(),
           BlocProvider(
-              create: (context) => RatingCubit(), child: const RatingPage()),
+            create: (context) => RouletteGameCubit(),
+            child: const GamePage(),
+          ),
+          BlocProvider(
+            create: (context) => RatingCubit(),
+            child: const RatingPage(),
+          ),
           const SettingPage(),
         ],
       ),
