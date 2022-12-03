@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:test_roulette/domain/entity/user_model.dart';
-import 'package:test_roulette/domain/repositories/users_repository.dart';
+import 'package:test_roulette/domain/repositories/sqflite_database_repository.dart';
+import 'package:test_roulette/domain/repositories/firebase_database_repository.dart';
 
 enum BetTypes {
   highNumber,
@@ -32,7 +34,9 @@ class RouletteGameState {
 
 class RouletteGameCubit extends Cubit<RouletteGameState> {
   final _firebaseAuth = FirebaseAuth.instance;
-  final _usersRopository = UsersRepository();
+  final _firebaseDatabaseRepository = FirebaseDatabaseRepository();
+  final _sqfliteDatabaseRepository = SqfliteDatabaseRepository();
+  final _connectivity = Connectivity();
 
   // cells constants
   static const Set<int> redCells = {
@@ -170,7 +174,7 @@ class RouletteGameCubit extends Cubit<RouletteGameState> {
   // notifies when wheel has to rotate
   bool isPlaying = false;
 
-  // wheel rotating duration 
+  // wheel rotating duration
   static const int wheelRotatingDurationSeconds = 4;
 
   RouletteGameCubit() : super(RouletteGameState(currentUser: null)) {
@@ -180,10 +184,21 @@ class RouletteGameCubit extends Cubit<RouletteGameState> {
   Future<void> _initialize() async {
     final userId = _firebaseAuth.currentUser?.uid;
 
-    // load current user
+    // load current user base on connection status
     if (userId != null) {
-      final currentUser =
-          await _usersRopository.getUserModelFromFirebase(userId: userId);
+      final connectivityResult = await (_connectivity.checkConnectivity());
+
+      final UserModel? currentUser;
+      // load online from firebase database
+      if (connectivityResult == ConnectivityResult.mobile ||
+          connectivityResult == ConnectivityResult.wifi) {
+        currentUser = await _firebaseDatabaseRepository.getUserModel(userId: userId);
+      }
+      // load offline from sqflite database
+      else {
+        currentUser = await _sqfliteDatabaseRepository.getUserModel(userId: userId);
+      }
+
       final newState = RouletteGameState(currentUser: currentUser);
       emit(newState);
     }
@@ -318,7 +333,7 @@ class RouletteGameCubit extends Cubit<RouletteGameState> {
   }
 
   // animate roulette
-  Future<void> animateRoulette({required int number}) async {
+  void animateRoulette({required int number}) {
     // scroll to top
     _rouletteScrollController.animateTo(
       _rouletteScrollController.position.minScrollExtent,
@@ -354,7 +369,7 @@ class RouletteGameCubit extends Cubit<RouletteGameState> {
         numberOfVictories: numberOfVictories,
         winRate: winrate,
       );
-      _usersRopository.saveUserDataInFirebaseDatabase(userModel: currentUser);
+      await _saveUserData(userModel: currentUser);
 
       final newState = RouletteGameState(currentUser: currentUser);
       emit(newState);
@@ -376,8 +391,7 @@ class RouletteGameCubit extends Cubit<RouletteGameState> {
 
       // increase amount of users chips
       currentUser = currentUser.copyWith(numberOfChips: newNumberOfChips);
-      await _usersRopository.saveUserDataInFirebaseDatabase(
-          userModel: currentUser);
+      await _saveUserData(userModel: currentUser);
 
       final newState = RouletteGameState(currentUser: currentUser);
       emit(newState);
@@ -393,7 +407,7 @@ class RouletteGameCubit extends Cubit<RouletteGameState> {
 
       // decrease amount of users chips
       currentUser = currentUser.copyWith(numberOfChips: newNumberOfChips);
-      _usersRopository.saveUserDataInFirebaseDatabase(userModel: currentUser);
+      await _saveUserData(userModel: currentUser);
 
       final newState = RouletteGameState(currentUser: currentUser);
       emit(newState);
@@ -403,7 +417,7 @@ class RouletteGameCubit extends Cubit<RouletteGameState> {
   // bet chips
   Future<void> bet({required BetTypes betType, int? number}) async {
     if (isPlaying) return;
-    
+
     UserModel? currentUser = state.currentUser;
 
     if (currentUser != null) {
@@ -432,7 +446,10 @@ class RouletteGameCubit extends Cubit<RouletteGameState> {
       _totalBet += _currentBet;
 
       await _decreaseUserChips(count: _currentBet);
-      _currentBet = _stepperBet();
+
+      if(_currentBet > state.currentUser!.numberOfChips) {
+        _currentBet = _stepperBet();
+      }
     }
 
     final newState =
@@ -485,7 +502,7 @@ class RouletteGameCubit extends Cubit<RouletteGameState> {
   }
 
   // clear all bets
-  void clearAllBets() async {
+  Future<void> clearAllBets() async {
     await _increaseUserChips(count: _totalBet);
 
     _totalBet = 0;
@@ -495,4 +512,18 @@ class RouletteGameCubit extends Cubit<RouletteGameState> {
 
     emit(RouletteGameState(currentUser: state.currentUser?.copyWith()));
   }
+
+  // save user data
+  Future<void> _saveUserData({required UserModel userModel}) async {
+    final connectivityResult = await (_connectivity.checkConnectivity());
+
+    if (connectivityResult == ConnectivityResult.mobile ||
+        connectivityResult == ConnectivityResult.wifi) {
+      await _firebaseDatabaseRepository.saveUserData(userModel: userModel);
+      await _sqfliteDatabaseRepository.saveUserModel(userModel: userModel);
+    } else {
+      await _sqfliteDatabaseRepository.saveUserModel(userModel: userModel);
+    }
+  }
+
 }

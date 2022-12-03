@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:test_roulette/domain/entity/user_model.dart';
-import 'package:test_roulette/domain/repositories/users_repository.dart';
+import 'package:test_roulette/domain/repositories/firebase_database_repository.dart';
 
 enum AuthState {
   initial,
@@ -15,7 +15,7 @@ enum AuthState {
 
 class AuthCubit extends Cubit<AuthState> {
   final _firebaseAuth = FirebaseAuth.instance;
-  final _usersRopository = UsersRepository();
+  final _firebaseDatabaseRepository = FirebaseDatabaseRepository();
 
   // variables used to display response to user
   String _errorText = '';
@@ -116,7 +116,7 @@ class AuthCubit extends Cubit<AuthState> {
         );
 
         // save anonymous user in firebases databases
-        _usersRopository.saveUserDataInFirebaseDatabase(userModel: userModel);
+        _firebaseDatabaseRepository.saveUserData(userModel: userModel);
 
         errorTextClean();
       } else {
@@ -168,7 +168,7 @@ class AuthCubit extends Cubit<AuthState> {
         );
 
         // save user in firebases databases
-        _usersRopository.saveUserDataInFirebaseDatabase(userModel: userModel);
+        _firebaseDatabaseRepository.saveUserData(userModel: userModel);
 
         errorTextClean();
       }
@@ -225,7 +225,7 @@ class AuthCubit extends Cubit<AuthState> {
         );
 
         // save user in firebases databases
-        _usersRopository.saveUserDataInFirebaseDatabase(userModel: userModel);
+        _firebaseDatabaseRepository.saveUserData(userModel: userModel);
 
         errorTextClean();
       } else {

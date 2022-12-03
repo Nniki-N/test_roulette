@@ -6,10 +6,10 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:test_roulette/domain/entity/user_model.dart';
-import 'package:test_roulette/domain/repositories/users_repository.dart';
+import 'package:test_roulette/domain/repositories/firebase_database_repository.dart';
 
 class RatingCubit extends Cubit<List<UserModel>> {
-  final _usersRopository = UsersRepository();
+  final _firebaseDatabaseRepository = FirebaseDatabaseRepository();
 
   StreamSubscription<DatabaseEvent>? _usersStreamSubscription;
 
@@ -19,8 +19,8 @@ class RatingCubit extends Cubit<List<UserModel>> {
 
   Future<void> _initialize() async {
     // change list when one of users has changes
-    _usersStreamSubscription = _usersRopository
-        .getUsersDataStreamFromFirebaseDatabase().listen((event) {
+    _usersStreamSubscription = _firebaseDatabaseRepository
+        .getAllUsersDataStream().listen((event) {
       List<UserModel> list = [];
 
       for (var item in event.snapshot.children) {

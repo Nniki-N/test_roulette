@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:test_roulette/domain/entity/user_model.dart';
 
-class UsersRepository {
+class FirebaseDatabaseRepository {
   final _firebaseDatabase = FirebaseDatabase.instance;
 
   // save user date or create user if user is missing in firebase database
-  Future<void> saveUserDataInFirebaseDatabase(
+  Future<void> saveUserData(
       {required UserModel userModel}) async {
     final ref = _firebaseDatabase.ref().child('users/${userModel.userId}');
 
@@ -21,7 +21,7 @@ class UsersRepository {
     });
   }
 
-  Future<UserModel> getUserModelFromFirebase({required String userId}) async {
+  Future<UserModel> getUserModel({required String userId}) async {
     final ref = _firebaseDatabase.ref().child('users/$userId');
 
     final snapshot = await ref.get();
@@ -30,7 +30,7 @@ class UsersRepository {
   }
 
   // get user data stream by user id from firebase database
-  Stream<DatabaseEvent> getUserDataStreamFromFirebaseDatabase(
+  Stream<DatabaseEvent> getUserDataStream(
       {required String userId}) {
     final ref = _firebaseDatabase.ref().child('users/$userId');
 
@@ -38,7 +38,7 @@ class UsersRepository {
   }
 
   // delete user from firebase database
-  Future<void> deleteUserDataFromFirebaseDatabase(
+  Future<void> deleteUserData(
       {required String userId}) async {
     final ref = _firebaseDatabase.ref().child('users/$userId');
 
@@ -46,7 +46,7 @@ class UsersRepository {
   }
 
   // gest all users data stream from firebase database
-  Stream<DatabaseEvent> getUsersDataStreamFromFirebaseDatabase() {
+  Stream<DatabaseEvent> getAllUsersDataStream() {
     final ref = _firebaseDatabase.ref().child('users');
 
     return ref.onValue;

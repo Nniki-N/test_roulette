@@ -46,6 +46,9 @@ dependencies:
   spider: ^4.0.0
   flutter_svg: ^1.1.6
   in_app_review: ^2.0.6
+  connectivity: ^3.0.6
+  sqflite: ^2.2.1
+  path: ^1.8.2
 
 dev_dependencies:
   flutter_test:
