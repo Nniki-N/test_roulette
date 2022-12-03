@@ -25,6 +25,13 @@ class GamePage extends StatelessWidget {
               children: [
                 Stack(
                   children: [
+                    Container(
+                      height: 300,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
                     rouletteGameCubit.isPlaying
                         ? RotatedWheel(
                             key: UniqueKey(),
